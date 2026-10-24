@@ -1,8 +1,9 @@
-"""Singleton JSON persistence with atomic replacement and in-process locking."""
+"""Singleton JSON persistence with atomic replacement and shared-process locking."""
 
 import json
 import os
 import tempfile
+from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 from threading import RLock
@@ -34,8 +35,59 @@ class DatabaseManager:
         if self._initialized:
             return
         self.settings = settings or SettingsLoader()
-        self.lock = RLock()
+        self._thread_lock = RLock()
+        self._process_locked = False
         self._initialized = True
+
+    @property
+    def lock(self):
+        """Create a reentrant guard shared by independent Core/Parser processes."""
+        return self._guard()
+
+    @staticmethod
+    def _process_lock(handle, *, release: bool = False) -> None:
+        """Use OS file locks, released automatically when a process exits."""
+        handle.seek(0)
+        if os.name == "nt":
+            import msvcrt
+
+            mode = msvcrt.LK_UNLCK if release else msvcrt.LK_LOCK
+            msvcrt.locking(handle.fileno(), mode, 1)
+        else:
+            import fcntl
+
+            mode = fcntl.LOCK_UN if release else fcntl.LOCK_EX
+            fcntl.flock(handle.fileno(), mode)
+
+    @contextmanager
+    def _guard(self):
+        """Hold one OS lock for an entire nested read/modify/write operation."""
+        with self._thread_lock:
+            if self._process_locked:
+                yield self
+                return
+            lock_path = self.settings.get_path("data_dir") / ".valutatrade.lock"
+            try:
+                lock_path.parent.mkdir(parents=True, exist_ok=True)
+                handle = lock_path.open("a+b")
+            except OSError:
+                raise StorageError("Не удалось открыть блокировку хранилища") from None
+            with handle:
+                try:
+                    self._process_lock(handle)
+                except OSError:
+                    raise StorageError(
+                        "Хранилище занято другим процессом. Повторите операцию позже."
+                    ) from None
+                self._process_locked = True
+                try:
+                    if os.fstat(handle.fileno()).st_size == 0:
+                        handle.write(b"0")
+                        handle.flush()
+                    yield self
+                finally:
+                    self._process_locked = False
+                    self._process_lock(handle, release=True)
 
     def path(self, collection: str) -> Path:
         """Resolve only application-defined collections, not arbitrary file paths."""
