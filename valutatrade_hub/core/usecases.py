@@ -39,6 +39,11 @@ class RateQuote:
     provider_times: dict[str, str]
     stale: bool
 
+    @property
+    def inverse_rate(self) -> float:
+        """Calculate the reciprocal in Core rather than in a CLI renderer."""
+        return validate_number(1.0 / self.rate, name="rate")
+
 
 class CoreService:
     """Own an in-process login session and coordinate domain/persistence services."""

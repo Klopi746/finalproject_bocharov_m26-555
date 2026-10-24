@@ -135,7 +135,7 @@ def render_quote(quote) -> None:
     )
     print(
         f"Обратный курс {quote.to_code}→{quote.from_code}: "
-        f"{format_rate(1.0 / quote.rate)}"
+        f"{format_rate(quote.inverse_rate)}"
     )
     for source, timestamp in sorted(quote.provider_times.items()):
         print(f"Время котировки у {source}: {timestamp}")
