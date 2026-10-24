@@ -6,7 +6,7 @@
 
 ## Текущее состояние
 
-Реализованы модели пользователей, кошельков и портфелей, иерархия валют, доменные исключения, Singleton-настройки и атомарное JSON-хранилище. Командный интерфейс пока показывает статус каркаса: регистрация, сделки, API-клиенты, логирование и финальная демонстрация ещё не подключены. Это промежуточная версия, не вариант для сдачи.
+Реализованы модели, иерархия валют, исключения, Singleton-настройки и JSON-хранилище. Parser Service получает настоящие курсы из обоих API, сохраняет кэш и историю, обрабатывает частичный отказ источников и пишет ротируемые JSON-логи. Командный интерфейс пока показывает статус каркаса: регистрация, сделки, команды обновления и финальная демонстрация ещё не подключены. Это промежуточная версия, не вариант для сдачи.
 
 ## Запуск
 
@@ -35,10 +35,9 @@ Copy-Item .env.example .env
 
 ```dotenv
 EXCHANGERATE_API_KEY=
-COINGECKO_DEMO_API_KEY=
 ```
 
-`EXCHANGERATE_API_KEY` — ключ вашего аккаунта ExchangeRate-API. `COINGECKO_DEMO_API_KEY` необязателен: пустое значение означает публичный режим CoinGecko. Бесплатный Demo-ключ создаётся в [Developer Dashboard](https://www.coingecko.com/en/developers/dashboard), раздел **API Keys → + Add New Key**. Платный Pro-ключ для задания не нужен.
+`EXCHANGERATE_API_KEY` — ключ вашего аккаунта ExchangeRate-API. CoinGecko работает только в публичном режиме без ключа, как разрешено заданием и выбрано автором. Продолжать регистрацию, получать Demo-ключ или покупать Pro-тариф не нужно.
 
 Файл `.env` исключён из Git и сборки. В Git хранится только пустой `.env.example`. Не отправляйте ключи в чат, README, скриншоты и логи.
 
@@ -87,6 +86,6 @@ uvx twine check dist/valutatrade_hub-0.1.0.tar.gz dist/valutatrade_hub-0.1.0-py3
 
 - [Официальное задание](https://practicum.yandex.ru/learn/higher-data-analytics/courses/1bcb1235-88f7-4049-872c-ccf2eadab374/sprints/1080939/topics/a4396349-49d2-482a-a148-1946895c0688/lessons/34db6c2a-235e-48a9-861a-daacbb724e72/) — структура и требования проекта.
 - [ExchangeRate-API: Standard Requests](https://www.exchangerate-api.com/docs/standard-requests) — контракт фиатных курсов.
-- [CoinGecko: создание Demo-ключа](https://support.coingecko.com/articles/9471335603-user-guide-how-to-sign-up-for-coingecko-demo-api-and-generate-an-api-key) — подключение бесплатного API.
+- [CoinGecko: формат ответов /simple/price](https://docs.coingecko.com/reference/simple-price) — цены и время обновления; в проекте используется публичный домен `api.coingecko.com` без ключа, не платный Pro.
 
 Источники проверены 25 октября 2026 года. Максимум по рубрике — 50 баллов; подтверждённый дедлайн и результат проверки пока не зафиксированы.

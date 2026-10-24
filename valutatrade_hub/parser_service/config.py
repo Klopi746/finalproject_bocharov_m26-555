@@ -12,10 +12,6 @@ class ParserConfig:
         default_factory=lambda: os.getenv("EXCHANGERATE_API_KEY", "").strip(),
         repr=False,
     )
-    COINGECKO_DEMO_API_KEY: str = field(
-        default_factory=lambda: os.getenv("COINGECKO_DEMO_API_KEY", "").strip(),
-        repr=False,
-    )
     COINGECKO_URL: str = "https://api.coingecko.com/api/v3/simple/price"
     EXCHANGERATE_API_URL: str = "https://v6.exchangerate-api.com/v6"
     BASE_CURRENCY: str = "USD"

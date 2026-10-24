@@ -9,13 +9,8 @@ def print_config_status() -> None:
     """Report only key presence, never secret values or authenticated URLs."""
     config = ParserConfig()
     fiat_status = "ключ задан" if config.EXCHANGERATE_API_KEY else "ключ не задан"
-    crypto_status = (
-        "Demo-ключ задан"
-        if config.COINGECKO_DEMO_API_KEY
-        else "публичный режим без ключа"
-    )
     print(f"ExchangeRate-API: {fiat_status}")
-    print(f"CoinGecko: {crypto_status}")
+    print("CoinGecko: публичный режим без ключа")
     print("Проверено только наличие настроек; запросы к API не выполнялись.")
 
 
