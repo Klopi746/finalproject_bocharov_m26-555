@@ -24,6 +24,9 @@ class RatesStorage:
                 raise ValueError("Missing rate source")
             if "meta" in entry and not isinstance(entry["meta"], dict):
                 raise ValueError("Invalid rate metadata")
+            source_time = entry.get("meta", {}).get("source_updated_at")
+            if source_time is not None:
+                parse_timestamp(source_time)
         except (AttributeError, KeyError, TypeError, ValueError):
             raise StorageError("Некорректная запись в кеше курсов") from None
 

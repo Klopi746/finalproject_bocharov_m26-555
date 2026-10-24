@@ -158,8 +158,11 @@ class ExchangeRateApiClient(BaseApiClient):
         url = f"{self.config.EXCHANGERATE_API_URL.rstrip('/')}/{key}/latest/{base}"
         payload = self._request_json(url)
         if payload.get("result") != "success":
-            reason = PROVIDER_ERROR_REASONS.get(
-                payload.get("error-type"), "источник сообщил об ошибке"
+            error_type = payload.get("error-type")
+            reason = (
+                PROVIDER_ERROR_REASONS.get(error_type, "источник сообщил об ошибке")
+                if isinstance(error_type, str)
+                else "источник сообщил об ошибке"
             )
             raise ApiRequestError(f"{self.source_name}: {reason}")
         raw_rates = payload.get("conversion_rates")

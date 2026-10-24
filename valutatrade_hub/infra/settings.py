@@ -52,10 +52,33 @@ class SettingsLoader:
                     values = tomllib.load(source).get("tool", {}).get("valutatrade", {})
         if not isinstance(values, dict):
             raise ValueError("Настройки должны содержать объект параметров")
+        values = {key.lower(): value for key, value in values.items()}
         self._values = {**DEFAULT_SETTINGS, **values}
+        data_dir = self.get("data_dir")
+        if not isinstance(data_dir, str) or not data_dir:
+            raise ValueError("data_dir должен быть непустым путём")
+        for key in ("users_file", "portfolios_file", "rates_file", "history_file"):
+            if key not in values:
+                self._values[key] = str(
+                    Path(data_dir) / Path(DEFAULT_SETTINGS[key]).name
+                )
         ttl = self.get("rates_ttl_seconds")
         if type(ttl) is not int or ttl <= 0:
             raise ValueError("rates_ttl_seconds должен быть положительным целым числом")
+        for key in ("log_max_bytes", "log_backup_count"):
+            value = self.get(key)
+            if type(value) is not int or value <= 0:
+                raise ValueError(f"{key} должен быть положительным целым числом")
+        if self.get("log_format") != "json":
+            raise ValueError("Поддерживается формат логов json")
+        if self.get("log_level") not in (
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL",
+        ):
+            raise ValueError("Некорректный уровень логирования")
 
     def get(self, key: str, default=None):
         """Return a setting using case-insensitive configuration keys."""

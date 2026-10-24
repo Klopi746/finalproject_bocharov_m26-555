@@ -1,6 +1,7 @@
 """Validation, UTC timestamps and rate-conversion helpers."""
 
 import math
+from collections import deque
 from datetime import datetime, timezone
 
 from .exceptions import ApiRequestError
@@ -77,26 +78,33 @@ def iso_timestamp(value: datetime | None = None) -> str:
     return parse_timestamp(value or utc_now()).isoformat().replace("+00:00", "Z")
 
 
-def rate_from_pairs(pairs: dict, from_code: str, to_code: str) -> float:
-    """Resolve direct, inverse or USD-cross rates from validated pair entries."""
+def resolve_rate(pairs: dict, from_code: str, to_code: str) -> tuple[float, tuple]:
+    """Find a shortest conversion path and identify every quote it uses."""
     if from_code == to_code:
-        return 1.0
-
-    def read_pair(source: str, target: str):
-        entry = pairs.get(f"{source}_{target}")
-        if entry is None:
-            return None
+        return 1.0, ()
+    graph = {}
+    for pair, entry in sorted(pairs.items()):
+        source, target = pair.split("_")
         value = entry.get("rate") if isinstance(entry, dict) else entry
-        return validate_number(value, name="rate")
+        rate = validate_number(value, name="rate")
+        graph.setdefault(source, []).append((target, rate, pair))
+        graph.setdefault(target, []).append((source, 1.0 / rate, pair))
+    pending = deque([(from_code, 1.0, ())])
+    visited = {from_code}
+    while pending:
+        currency, accumulated, path = pending.popleft()
+        for target, rate, pair in graph.get(currency, []):
+            if target in visited:
+                continue
+            converted = validate_number(accumulated * rate, name="rate")
+            used = (*path, pair)
+            if target == to_code:
+                return converted, used
+            visited.add(target)
+            pending.append((target, converted, used))
+    raise ApiRequestError(f"Курс {from_code}→{to_code} недоступен")
 
-    direct = read_pair(from_code, to_code)
-    if direct is not None:
-        return direct
-    inverse = read_pair(to_code, from_code)
-    if inverse is not None:
-        return validate_number(1.0 / inverse, name="rate")
-    from_usd = 1.0 if from_code == "USD" else read_pair(from_code, "USD")
-    to_usd = 1.0 if to_code == "USD" else read_pair(to_code, "USD")
-    if from_usd is None or to_usd is None:
-        raise ApiRequestError(f"Курс {from_code}→{to_code} недоступен")
-    return validate_number(from_usd / to_usd, name="rate")
+
+def rate_from_pairs(pairs: dict, from_code: str, to_code: str) -> float:
+    """Resolve a rate without exposing the internal conversion path."""
+    return resolve_rate(pairs, from_code, to_code)[0]
