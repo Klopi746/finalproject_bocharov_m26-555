@@ -1,0 +1,92 @@
+# Итоговый проект — ValutaTrade Hub
+
+> СГЕНЕРИРОВАНО ИИ!(При моём активном участии :D)
+
+Дисциплина: «Программирование на Python», группа М26-555. Консольное приложение для виртуального портфеля фиатных и криптовалют. Реальных покупок, переводов и подключения к биржевым кошелькам здесь нет.
+
+## Текущее состояние
+
+Подготовлены окружение, структура пакета по заданию, Ruff и конфигурация сервисов. Модели, регистрация, сделки, кэш курсов, API-клиенты, логирование и финальная демонстрация ещё не реализованы. Это стартовый каркас, не версия для сдачи.
+
+## Запуск
+
+Нужны `uv` и Python 3.12. Для локальной работы закреплён Python 3.12.10. Из корня проекта:
+
+```powershell
+uv sync --locked
+uv run valutatrade
+uv run ruff check .
+uv run ruff format --check .
+```
+
+`uv` создаёт `.venv` и устанавливает зависимости. Команда `valutatrade` пока показывает статус каркаса и справку. Также работает `uv run python main.py`.
+
+## Сервисы и ключи
+
+Для курсов используются ExchangeRate-API и CoinGecko. Отдельная биржа, платный тариф, сервер базы данных и Docker для начала работы не нужны.
+
+Создайте локальный `.env` из шаблона, если его ещё нет:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Если `.env` уже существует, не перезаписывайте его. Заполните только значения после знака `=`:
+
+```dotenv
+EXCHANGERATE_API_KEY=
+COINGECKO_DEMO_API_KEY=
+```
+
+`EXCHANGERATE_API_KEY` — ключ вашего аккаунта ExchangeRate-API. `COINGECKO_DEMO_API_KEY` необязателен: пустое значение означает публичный режим CoinGecko. Бесплатный Demo-ключ создаётся в [Developer Dashboard](https://www.coingecko.com/en/developers/dashboard), раздел **API Keys → + Add New Key**. Платный Pro-ключ для задания не нужен.
+
+Файл `.env` исключён из Git и сборки. В Git хранится только пустой `.env.example`. Не отправляйте ключи в чат, README, скриншоты и логи.
+
+Для загрузки настроек из `.env`:
+
+```powershell
+uv run --env-file .env valutatrade --check-config
+```
+
+Проверка выводит только наличие ключей. Она не отправляет запросы и не подтверждает действительность ключа. При запуске установленного пакета без `uv` переменные окружения нужно передать отдельно.
+
+## Структура
+
+```text
+valutatrade_hub/
+├── core/            # модели, валюты, исключения и бизнес-операции
+├── infra/           # настройки и JSON-хранилище
+├── parser_service/  # конфигурация и будущий сбор курсов
+├── cli/             # командный интерфейс
+├── logging_config.py
+└── decorators.py
+main.py
+pyproject.toml
+uv.lock
+```
+
+Пакет расположен в корне, как в ТЗ. Локальные `data/`, `logs/`, `.venv` и настройки редактора в репозиторий не попадают. Пока созданы пустые локальные JSON-файлы; демо-пользователей, паролей и вымышленных курсов нет.
+
+## Следующие этапы по заданию
+
+1. Модели `User`, `Wallet`, `Portfolio`; `register`, `login`, `show-portfolio`, `buy`, `sell`, `get-rate`.
+2. Иерархия валют, доменные исключения, Singleton-настройки и хранилище, `log_action` и ротация логов.
+3. API-клиенты, `update-rates`, `show-rates`, атомарное сохранение кэша и истории.
+4. Полная проверка по критериям и демонстрация всех сценариев.
+
+В `[tool.valutatrade]` предусмотрен TTL курсов 300 секунд. Проверка свежести и работа с `rates.json` будут подключены при реализации Core Service; сейчас TTL не применяется.
+
+## Сборка
+
+```powershell
+uv build
+uvx twine check dist/valutatrade_hub-0.1.0.tar.gz dist/valutatrade_hub-0.1.0-py3-none-any.whl
+```
+
+## Источники
+
+- [Официальное задание](https://practicum.yandex.ru/learn/higher-data-analytics/courses/1bcb1235-88f7-4049-872c-ccf2eadab374/sprints/1080939/topics/a4396349-49d2-482a-a148-1946895c0688/lessons/34db6c2a-235e-48a9-861a-daacbb724e72/) — структура и требования проекта.
+- [ExchangeRate-API: Standard Requests](https://www.exchangerate-api.com/docs/standard-requests) — контракт фиатных курсов.
+- [CoinGecko: создание Demo-ключа](https://support.coingecko.com/articles/9471335603-user-guide-how-to-sign-up-for-coingecko-demo-api-and-generate-an-api-key) — подключение бесплатного API.
+
+Источники проверены 25 октября 2026 года. Максимум по рубрике — 50 баллов; подтверждённый дедлайн и результат проверки пока не зафиксированы.

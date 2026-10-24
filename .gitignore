@@ -1,0 +1,28 @@
+# Environment and credentials
+/.venv/
+/.env
+/.env.*
+!/.env.example
+
+# Builds and caches
+/dist/
+/build/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Personal runtime data and logs
+/data/
+/logs/
+*.log
+*.tmp
+
+# Local editor settings and work materials
+/.vscode/
+/.idea/
+/.tools/
+/recordings/
+*.cast

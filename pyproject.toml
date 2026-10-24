@@ -1,0 +1,48 @@
+[project]
+name = "valutatrade-hub"
+version = "0.1.0"
+description = "Educational CLI for a virtual fiat and cryptocurrency portfolio"
+readme = "README.md"
+authors = [
+    { name = "Danila Bocharov" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "prettytable>=3.18.0",
+    "requests>=2.34.2",
+]
+
+[project.scripts]
+valutatrade = "valutatrade_hub.cli.interface:main"
+
+[build-system]
+requires = ["uv_build>=0.11.12,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+source-include = ["main.py", ".python-version", "uv.lock", ".env.example"]
+source-exclude = [".env", ".env.local", ".vscode/**", "data/**", "logs/**"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = [".venv", "dist", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = []
+
+[tool.valutatrade]
+data_dir = "data"
+rates_file = "data/rates.json"
+history_file = "data/exchange_rates.json"
+logs_dir = "logs"
+rates_ttl_seconds = 300
+default_base_currency = "USD"
+log_level = "INFO"
+
+[dependency-groups]
+dev = [
+    "ruff==0.12.1",
+]

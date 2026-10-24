@@ -1,0 +1,1 @@
+"""ValutaTrade Hub educational project."""
