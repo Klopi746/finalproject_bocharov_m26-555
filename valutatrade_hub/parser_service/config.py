@@ -3,6 +3,8 @@
 import os
 from dataclasses import dataclass, field
 
+from ..infra.settings import SettingsLoader
+
 
 @dataclass(frozen=True)
 class ParserConfig:
@@ -24,6 +26,14 @@ class ParserConfig:
             "SOL": "solana",
         }
     )
-    RATES_FILE_PATH: str = "data/rates.json"
-    HISTORY_FILE_PATH: str = "data/exchange_rates.json"
     REQUEST_TIMEOUT: int = 10
+
+    @property
+    def RATES_FILE_PATH(self) -> str:
+        """Use the same cache path as Core Service, not a second editable default."""
+        return str(SettingsLoader().get_path("rates_file"))
+
+    @property
+    def HISTORY_FILE_PATH(self) -> str:
+        """Expose the history path from the shared settings source of truth."""
+        return str(SettingsLoader().get_path("history_file"))
