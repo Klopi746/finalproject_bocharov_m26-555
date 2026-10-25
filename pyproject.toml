@@ -21,7 +21,7 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-root = ""
-source-include = ["main.py", ".python-version", "uv.lock", ".env.example"]
+source-include = ["main.py", ".python-version", "uv.lock", ".env.example", "assets/demo.gif"]
 source-exclude = [".env", ".env.local", ".vscode/**", "data/**", "logs/**"]
 
 [tool.ruff]

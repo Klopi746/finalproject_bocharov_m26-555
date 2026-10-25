@@ -1,5 +1,6 @@
 # Environment and credentials
 /.venv/
+/.package-check/
 /.env
 /.env.*
 !/.env.example
